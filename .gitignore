@@ -1,0 +1,7 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+/.claude/settings.local.json
+
+# 目視ループ用キャプチャ（実行のたびに変わる一時ファイル）
+/ai_tools/screenshot.png
