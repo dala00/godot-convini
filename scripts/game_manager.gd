@@ -75,6 +75,8 @@ var sfx_place: AudioStreamWAV = null
 var sfx_error: AudioStreamWAV = null
 var sfx_clear: AudioStreamWAV = null
 var sfx_gameover: AudioStreamWAV = null
+var bgm_player: AudioStreamPlayer = null
+var bgm_started := false
 
 func _ready() -> void:
 	randomize()
@@ -256,6 +258,10 @@ func _free_occ_of(p: Product) -> void:
 #  入力（スキャン／掴む・置く／回転）
 # ============================================================
 func _unhandled_input(event: InputEvent) -> void:
+	# 最初のユーザー操作でBGM開始（ブラウザの自動再生制限対策）
+	if not bgm_started and bgm_player != null and event is InputEventMouseButton and event.pressed:
+		bgm_player.play()
+		bgm_started = true
 	if gstate == GS.GAMEOVER:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			_restart()
@@ -490,23 +496,25 @@ func _build_sfx() -> void:
 	])
 
 func _start_bgm() -> void:
-	# BGM（ループ再生）。MP3を実行時に読み込むので .import に依存しない。
+	# BGM（ループ再生）。書き出し版でも含まれるよう load() でインポート済みリソースを使う。
 	var path := "res://sounds/Caribbean_Passion.mp3"
-	if not FileAccess.file_exists(path):
+	if not ResourceLoader.exists(path):
 		return
-	var f := FileAccess.open(path, FileAccess.READ)
-	if f == null:
+	var stream = load(path)
+	if stream == null:
 		return
-	var mp3 := AudioStreamMP3.new()
-	mp3.data = f.get_buffer(f.get_length())
-	mp3.loop = true
-	f.close()
-	var bgm := AudioStreamPlayer.new()
-	bgm.stream = mp3
-	bgm.volume_db = -11.0      # SFXが埋もれないよう控えめに
-	bgm.bus = "Master"
-	add_child(bgm)
-	bgm.play()
+	if stream is AudioStreamMP3:
+		stream.loop = true
+	bgm_player = AudioStreamPlayer.new()
+	bgm_player.stream = stream
+	bgm_player.volume_db = -11.0      # SFXが埋もれないよう控えめに
+	add_child(bgm_player)
+	# ブラウザは自動再生を禁止するため、Webでは最初のクリックで再生開始する。
+	if OS.has_feature("web"):
+		bgm_started = false
+	else:
+		bgm_player.play()
+		bgm_started = true
 
 func _play(stream: AudioStream) -> void:
 	if stream == null:
