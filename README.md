@@ -1,6 +1,9 @@
 # convini — コンビニ レジ打ちゲーム
 
 Godot 4.6 製の、コンビニのレジ打ち＆袋詰めパズルゲーム。
+ゲームコードも3Dモデルも効果音も、**[Claude Code](https://claude.com/claude-code) との対話**で作成しています。
+
+![ゲーム画面](screenshot.png)
 
 ## 遊び方
 
@@ -28,7 +31,17 @@ Godot 4.6 製の、コンビニのレジ打ち＆袋詰めパズルゲーム。
 
 ## 開発
 
+エディタで開くか、新規アセット追加後にインポートだけ生成したい場合は Godot 4.6 で:
+
 ```
-# 新規アセット追加後にインポートを生成する場合
-"D:\users\documents\programs\godot\4.6.3\Godot_v4.6.3-stable_win64.exe" --headless --path . --import
+godot --headless --path . --import
 ```
+
+（`godot` は各自の環境の Godot 4.6 実行ファイルに置き換え）
+
+## クレジット
+
+- **BGM**: 「Caribbean Passion」 by MFP【Marron Fields Production】さん — [DOVA-SYNDROME](https://dova-s.jp/bgm/detail/23461)
+- **商品3Dモデル**: Blender で作成（Blender MCP 経由でローポリを生成し、真上から正射影でPNG化）
+- **効果音**: コードによるPCM波形合成（音声ファイル不使用）
+- **開発**: [Claude Code](https://claude.com/claude-code)（Anthropic）との対話による

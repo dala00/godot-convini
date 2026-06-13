@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 public class Win32 {
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint nFlags);
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
 }
 '@
@@ -37,9 +38,19 @@ $w = $r.Right - $r.Left
 $ht = $r.Bottom - $r.Top
 if (($w -le 0) -or ($ht -le 0)) { Write-Error "failed to get window size"; exit 1 }
 
+# PrintWindow で実体を取得（前面でなくても・他ウィンドウに隠れていても撮れる）
 $bmp = New-Object System.Drawing.Bitmap $w, $ht
 $g = [System.Drawing.Graphics]::FromImage($bmp)
-$g.CopyFromScreen($r.Left, $r.Top, 0, 0, $bmp.Size)
+$hdc = $g.GetHdc()
+# nFlags=2 (PW_RENDERFULLCONTENT) でGPU描画ウィンドウも取得
+$ok = [Win32]::PrintWindow($h, $hdc, 2)
+$g.ReleaseHdc($hdc)
+if (-not $ok) {
+    # フォールバック：前面化して画面コピー
+    [Win32]::SetForegroundWindow($h) | Out-Null
+    Start-Sleep -Milliseconds 250
+    $g.CopyFromScreen($r.Left, $r.Top, 0, 0, $bmp.Size)
+}
 $full = if ([System.IO.Path]::IsPathRooted($Out)) { $Out } else { Join-Path (Get-Location) $Out }
 $bmp.Save($full, [System.Drawing.Imaging.ImageFormat]::Png)
 $g.Dispose(); $bmp.Dispose()

@@ -23,7 +23,6 @@
       "Bash(find:*)",
       "Bash(python:*)",
       "Bash(touch:*)",
-      "PowerShell(& \"D:\\\\users\\\\documents\\\\godot\\\\convini\\\\ai_tools\\\\cap.ps1\"*)",
       "PowerShell(Start-Sleep -Seconds *)"
     ]
   }

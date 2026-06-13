@@ -577,27 +577,67 @@ func _draw_left_panel() -> void:
 	draw_rect(Rect2(20, 20, LEFT_PANEL_W - 40, 60), Color(0.3, 0.3, 0.38), true)
 	draw_rect(Rect2(20, 20, LEFT_PANEL_W - 40, 60), Color(0, 0, 0), false, 2.0)
 	_text("レジ", Vector2(30, 58), 22, Color(0.95, 0.95, 1.0))
-	_text("並んでいる客: %d / %d" % [queue.size(), MAX_CUSTOMERS], Vector2(20, 108), 16, Color(1, 0.8, 0.8))
+	# 客数（爆発間近は赤点滅）
+	var danger := queue.size() >= MAX_CUSTOMERS - 2
+	var qcol := Color(1, 0.8, 0.8)
+	if danger:
+		qcol = Color(1, 0.25, 0.2) if (int(elapsed * 4.0) % 2 == 0) else Color(1, 0.7, 0.2)
+	_text("並んでいる客: %d / %d" % [queue.size(), MAX_CUSTOMERS], Vector2(20, 108), 16, qcol)
+	if danger:
+		_text("まもなく爆発!!", Vector2(150, 108), 16, qcol)
 	var slot_h := 52.0
 	var top := 120.0
 	for i in MAX_CUSTOMERS:
 		var y := top + i * slot_h
 		var filled := i < queue.size()
 		var slot := Rect2(20, y, LEFT_PANEL_W - 40, slot_h - 8)
-		draw_rect(slot, Color(0.18, 0.19, 0.23) if filled else Color(0.1, 0.1, 0.12), true)
+		var base_bg := Color(0.18, 0.19, 0.23) if filled else Color(0.1, 0.1, 0.12)
+		if danger and filled:
+			base_bg = base_bg.lerp(Color(0.4, 0.12, 0.1), 0.5)
+		draw_rect(slot, base_bg, true)
 		draw_rect(slot, Color(0, 0, 0, 0.5), false, 1.0)
 		if filled:
 			var cust: Dictionary = queue[i]
 			var ccol: Color = cust["color"]
-			var hx := slot.position.x + 22.0
-			var hy := slot.position.y + slot.size.y * 0.5
-			draw_circle(Vector2(hx, hy - 6), 10.0, Color(0.95, 0.85, 0.75))
-			draw_rect(Rect2(hx - 12, hy + 2, 24, 14), ccol, true)
+			var hx := slot.position.x + 24.0
+			var hy := slot.position.y + slot.size.y * 0.5 + sin(elapsed * 3.0 + i) * 1.2
+			# 表情: 先頭(接客中)は普通、後ろほど＆混雑時ほど不機嫌
+			var mood := 0.0   # 1=笑顔 0=普通 -1=怒り
+			if i == 0:
+				mood = 0.2
+			else:
+				mood = -clampf((float(i) + (queue.size() - 3)) / 7.0, 0.0, 1.0)
+			_draw_person(Vector2(hx, hy), ccol, mood)
 			var label := "接客中" if i == 0 else "待ち %d" % i
-			_text(label, Vector2(slot.position.x + 44, hy - 6), 15, Color(1, 1, 1) if i == 0 else Color(0.8, 0.8, 0.85))
-			_text("商品 %d" % cust["products"].size(), Vector2(slot.position.x + 44, hy + 12), 13, Color(0.7, 0.85, 0.7))
+			_text(label, Vector2(slot.position.x + 50, hy - 6), 15, Color(1, 1, 1) if i == 0 else Color(0.82, 0.82, 0.86))
+			_text("商品 %d 個" % cust["products"].size(), Vector2(slot.position.x + 50, hy + 12), 13, Color(0.7, 0.85, 0.7))
 			if i == 0:
 				draw_rect(slot, Color(1, 0.9, 0.3), false, 2.5)
+
+# 客アイコン（頭＋顔＋体）。mood: 1=笑顔/0=普通/-1=怒り
+func _draw_person(c: Vector2, body_col: Color, mood: float) -> void:
+	var skin := Color(0.98, 0.86, 0.74)
+	# 体（肩）
+	draw_rect(Rect2(c.x - 13, c.y + 2, 26, 16), body_col, true)
+	draw_rect(Rect2(c.x - 13, c.y + 2, 26, 4), body_col.lightened(0.2), true)
+	# 頭
+	draw_circle(Vector2(c.x, c.y - 7), 11.0, skin)
+	# 目
+	var eye := Color(0.15, 0.12, 0.1)
+	draw_circle(Vector2(c.x - 4, c.y - 8), 1.7, eye)
+	draw_circle(Vector2(c.x + 4, c.y - 8), 1.7, eye)
+	# 怒り眉
+	if mood < -0.3:
+		draw_line(Vector2(c.x - 6, c.y - 12), Vector2(c.x - 2, c.y - 10), eye, 1.5)
+		draw_line(Vector2(c.x + 6, c.y - 12), Vector2(c.x + 2, c.y - 10), eye, 1.5)
+	# 口（mood>0=笑顔の弧 / mood<0=への字）
+	var my := c.y - 2.0
+	if mood > 0.1:
+		draw_arc(Vector2(c.x, my - 1), 4.0, 0.2 * PI, 0.8 * PI, 8, eye, 1.5)
+	elif mood < -0.3:
+		draw_arc(Vector2(c.x, my + 4), 4.0, 1.2 * PI, 1.8 * PI, 8, eye, 1.5)
+	else:
+		draw_line(Vector2(c.x - 3, my + 1), Vector2(c.x + 3, my + 1), eye, 1.5)
 
 func _draw_bag() -> void:
 	var bag_rect := Rect2(BAG_ORIGIN, Vector2(COLS * CELL, ROWS * CELL))
