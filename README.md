@@ -43,5 +43,6 @@ godot --headless --path . --import
 
 - **BGM**: 「Caribbean Passion」 by MFP【Marron Fields Production】さん — [DOVA-SYNDROME](https://dova-s.jp/bgm/detail/23461)
 - **商品3Dモデル**: Blender で作成（Blender MCP 経由でローポリを生成し、真上から正射影でPNG化）
+- **フォント**: [Sawarabi Gothic](https://github.com/google/fonts/tree/main/ofl/sawarabigothic)（SIL Open Font License。使用文字のみにサブセット化して同梱）
 - **効果音**: コードによるPCM波形合成（音声ファイル不使用）
 - **開発**: [Claude Code](https://claude.com/claude-code)（Anthropic）との対話による

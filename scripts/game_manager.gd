@@ -97,8 +97,16 @@ func _load_textures() -> void:
 				c["texture"] = t
 
 func _make_jp_font() -> Font:
+	# 同梱フォント（サブセット化したOFLの日本語）を使う。
+	# SystemFontはWeb書き出しでOSフォントが無く文字化けするため、必ず埋め込みフォントを優先。
+	var path := "res://fonts/convini_jp.ttf"
+	if ResourceLoader.exists(path):
+		var f = load(path)
+		if f is Font:
+			return f
+	# フォールバック（フォント未取り込み時のデスクトップ用）
 	var sf := SystemFont.new()
-	sf.font_names = PackedStringArray(["Meiryo", "Meiryo UI", "Yu Gothic UI", "Yu Gothic", "MS Gothic", "Noto Sans CJK JP"])
+	sf.font_names = PackedStringArray(["Meiryo", "Yu Gothic UI", "MS Gothic", "Noto Sans CJK JP"])
 	return sf
 
 func _build_walls() -> void:
