@@ -5,3 +5,7 @@
 
 # 目視ループ用キャプチャ（実行のたびに変わる一時ファイル）
 /ai_tools/screenshot.png
+
+# BGM（DOVA-SYNDROMEの規約上GitHubでの再配布NG。ローカルには残すがgit管理外）
+/sounds/*.mp3
+/sounds/*.mp3.import
